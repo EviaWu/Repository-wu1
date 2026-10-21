@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)file:///D:/MyWork/3-UI%E8%AE%BE%E8%AE%A1/V5.2.html -->
+<html lang="zh-CN" data-theme="morandi"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>影视资产管理中枢</title>
+<style>
+    /* ================= 主题定义 ================= */
+    [data-theme="neon"] {
+        --bg: #050507;
+        --panel-bg: rgba(22, 22, 26, 0.65);
+        --panel-border: rgba(255, 42, 109, 0.15);
+        --text-main: #ffffff;
+        --text-muted: #a1a1a6;
+        --accent: #ff2a6d;
+        --accent-glow: rgba(255, 42, 109, 0.4);
+        
+        --card-bg: rgba(25, 25, 30, 0.7);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-hover-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255, 42, 109, 0.3);
+        --btn-bg: rgba(255, 255, 255, 0.05);
+        
+        --tarot-text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        --tarot-cover-opacity: 0.8;
+        --tarot-cover-mask: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.9) 100%);
+        --tarot-font-start: #ffffff;
+        --tarot-font-end: #ff2a6d;
+
+        --status-已定稿-bg: rgba(0, 255, 136, 0.1); --status-已定稿-color: #00ff88;
+        --status-制作中-bg: rgba(255, 170, 0, 0.1); --status-制作中-color: #ffaa00;
+        --status-待定-bg: rgba(255, 255, 255, 0.08); --status-待定-color: #a1a1a6;
+        --font-title: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
+    }
+
+    [data-theme="morandi"] {
+        --bg: 
+            radial-gradient(circle at 15% 15%, rgba(255, 240, 240, 1) 0%, rgba(255, 240, 240, 0) 60%),
+            radial-gradient(circle at 85% 85%, rgba(193, 211, 222, 0.85) 0%, rgba(193, 211, 222, 0) 65%),
+            radial-gradient(circle at 90% 10%, rgba(252, 235, 235, 1) 0%, rgba(252, 235, 235, 0) 55%),
+            linear-gradient(135deg, #F8F2F0 0%, #E8E2DF 100%);
+        --panel-bg: rgba(255, 255, 255, 0.6);
+        --panel-border: rgba(240, 220, 220, 0.4);
+        --text-main: #4A4543;
+        --text-muted: #9A958E;
+        --accent: #E59393;
+        --accent-glow: rgba(229, 147, 147, 0.2);
+        
+        --card-bg: rgba(255, 255, 255, 0.85);
+        --card-border: rgba(255, 255, 255, 0.9);
+        --card-hover-shadow: 0 20px 40px rgba(200, 160, 160, 0.15), 0 0 0 1px rgba(240, 220, 220, 0.5);
+        --btn-bg: #FDF9F9;
+        
+        --tarot-text-shadow: none; 
+        --tarot-cover-opacity: 0.95; 
+        --tarot-cover-mask: linear-gradient(to bottom, rgba(255,255,255,0) 20%, rgba(240, 230, 230, 0.9) 100%);
+        --tarot-font-start: #5A5553; 
+        --tarot-font-end: #E59393; 
+
+        --status-已定稿-bg: #E6EFEA; --status-已定稿-color: #5B8A72;
+        --status-制作中-bg: #F5EBE6; --status-制作中-color: #C98B72;
+        --status-待定-bg: #F0EFED; --status-待定-color: #9A958E;
+        --font-title: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    }
+
+    /* ================= 基础与背景 ================= */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: var(--bg);
+        color: var(--text-main);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+        transition: background 0.6s ease, color 0.6s ease;
+    }
+
+    #bg-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+    [data-theme="morandi"] #bg-canvas { display: none; }
+
+    /* ================= 顶部导航 ================= */
+    header {
+        padding: 32px 64px;
+        display: flex; justify-content: space-between; align-items: flex-end;
+        border-bottom: 1px solid var(--panel-border);
+        background: var(--panel-bg);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        position: sticky; top: 0; z-index: 100;
+        transition: all 0.4s ease;
+    }
+
+    .title-area h1 {
+        font-family: var(--font-title); font-size: 36px; font-weight: 900; letter-spacing: -0.5px;
+        margin-bottom: 10px;
+        background: linear-gradient(90deg, var(--text-main), var(--accent));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        outline: none; transition: transform 0.3s;
+    }
+    .title-area p { font-size: 13px; color: var(--accent); letter-spacing: 4px; font-weight: 700;}
+
+    /* 数据面板 */
+    .stats { display: flex; gap: 16px; align-items: center; }
+    .stat-pill {
+        background: var(--btn-bg); border: 1px solid var(--panel-border);
+        border-radius: 20px; padding: 10px 20px; display: flex; flex-direction: column; align-items: center;
+        min-width: 80px; backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        transition: transform 0.2s;
+    }
+    .stat-pill:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-glow); }
+    .stat-pill .label { font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; letter-spacing: 1px;}
+    .stat-pill .value { font-size: 22px; font-weight: 900; color: var(--accent); line-height: 1; font-family: "SF Pro Display", sans-serif;}
+
+    /* 拉灯泡主题切换 */
+    .lamp-container {
+        position: relative; width: 60px; height: 80px; margin-left: 20px;
+        display: flex; flex-direction: column; align-items: center; cursor: grab;
+    }
+    .lamp-wire { width: 2px; height: 40px; background: var(--text-muted); transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1); transform-origin: top center; }
+    .lamp-bulb {
+        width: 28px; height: 32px; background: #444; border-radius: 50% 50% 30% 30%;
+        position: relative; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        box-shadow: inset 0 -4px 6px rgba(0,0,0,0.5);
+    }
+    .lamp-bulb::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); width: 14px; height: 6px; background: #222; border-radius: 2px; }
+    [data-theme="neon"] .lamp-bulb { background: #fff; box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent), inset 0 -4px 6px rgba(255, 42, 109, 0.3); }
+    [data-theme="morandi"] .lamp-bulb { background: #fff; box-shadow: 0 0 20px rgba(229, 147, 147, 0.5), 0 0 40px rgba(229, 147, 147, 0.3), inset 0 -4px 6px rgba(0,0,0,0.1); }
+    .lamp-container:hover .lamp-wire { height: 55px; }
+    .lamp-container:hover .lamp-bulb { transform: translateY(15px); }
+
+    /* ================= 主内容区 ================= */
+    .container { padding: 40px 64px 120px; position: relative; min-height: calc(100vh - 150px); display: flex; flex-direction: column; }
+
+    .control-bar {
+        width: 100%; display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 40px;
+    }
+
+    .tabs { display: flex; gap: 16px; }
+    .tab-btn {
+        background: transparent; border: 1px solid transparent;
+        color: var(--text-muted); font-size: 15px; font-weight: 700;
+        padding: 10px 24px; border-radius: 100px; cursor: pointer;
+        transition: all 0.3s;
+    }
+    .tab-btn:hover { color: var(--text-main); background: var(--btn-bg); }
+    .tab-btn.active {
+        color: var(--text-main); background: var(--panel-bg);
+        border-color: var(--panel-border); box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    [data-theme="morandi"] .tab-btn.active {
+        color: #fff; background: var(--text-main); border-color: var(--text-main);
+    }
+
+    .back-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--btn-bg); border: 1px solid var(--panel-border);
+        color: var(--text-main); padding: 10px 20px; border-radius: 100px;
+        cursor: pointer; font-size: 14px; font-weight: 600;
+        opacity: 0; transform: translateX(20px); pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .back-btn.show { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    .back-btn:hover { background: var(--panel-border); }
+
+    /* 视图容器 */
+    .view-section { display: none; opacity: 0; transition: opacity 0.5s ease; width: 100%; height: 100%; }
+    .view-section.active { display: flex; flex-direction: column; align-items: center; opacity: 1; }
+
+    /* ----- 1. 塔罗牌布阵 ----- */
+    .tarot-area {
+        position: relative; width: 100%; max-width: 1200px; height: 480px;
+        display: flex; justify-content: center; align-items: flex-start;
+        perspective: 1200px; margin: 0 auto; padding-top: 40px;
+    }
+
+    .tarot-card-wrapper {
+        position: absolute; width: 240px; height: 340px;
+        transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        cursor: pointer; transform-style: preserve-3d;
+    }
+
+    .tarot-card {
+        width: 100%; height: 100%;
+        background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        overflow: hidden; position: relative;
+        transition: box-shadow 0.4s ease, transform 0.4s ease;
+    }
+
+    .tarot-card-cover {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
+        opacity: var(--tarot-cover-opacity);
+        mask-image: var(--tarot-cover-mask);
+        -webkit-mask-image: var(--tarot-cover-mask);
+        z-index: 0; transition: transform 0.5s, opacity 0.3s;
+    }
+    
+    .tarot-card-wrapper:hover .tarot-card {
+        box-shadow: var(--card-hover-shadow);
+        transform: translateY(-10px);
+    }
+    .tarot-card-wrapper:hover .tarot-card-cover { opacity: 1; transform: scale(1.05); }
+    
+    /* 文本容器：彻底取消宽度限制，强制不换行 */
+    .tarot-content { 
+        position: absolute;
+        top: calc(100% + 20px);
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        width: max-content; /* 自适应最宽内容 */
+        text-align: center;
+        opacity: 0; 
+        pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        z-index: 10;
+    }
+    
+    .tarot-card-wrapper:hover .tarot-content {
+        opacity: 1; 
+        transform: translateX(-50%) translateY(0);
+    }
+    
+    /* 剧名文本：单行显示 */
+    .tarot-title { 
+        font-family: "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
+        font-size: 24px; 
+        font-weight: 900; 
+        letter-spacing: 2px; 
+        line-height: 1.4;
+        font-style: italic; 
+        
+        background: linear-gradient(90deg, var(--tarot-font-start), var(--tarot-font-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        
+        text-shadow: var(--tarot-text-shadow);
+        margin-bottom: 8px;
+        
+        /* 核心修改：强制单行 */
+        white-space: nowrap; 
+    }
+    .tarot-count { 
+        font-size: 12px; 
+        color: var(--text-muted); 
+        font-weight: 700; 
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    /* 展开与堆叠动画 */
+    .tarot-area:hover .tarot-card-wrapper { 
+        transform: translateX(var(--tx)) translateZ(var(--tz)) rotateY(var(--ry)) rotateZ(var(--rz)) scale(1); 
+    }
+    .tarot-area:hover .tarot-card-wrapper:hover { 
+        transform: translateX(var(--tx)) translateZ(calc(var(--tz) + 60px)) rotateY(0) rotateZ(0) scale(1.05); 
+        z-index: 100 !important; 
+    }
+    .tarot-card-wrapper { 
+        transform: translateX(calc(var(--i) * 2px)) translateY(calc(var(--i) * -2px)) rotateZ(calc(var(--i) * 1deg)); 
+        z-index: calc(10 - var(--i)); 
+    }
+
+    /* ----- 2. 散开后的资产网格 ----- */
+    .grid-container {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 32px; width: 100%; padding-top: 20px;
+    }
+
+    .asset-card {
+        background: var(--card-bg); 
+        border: 1px solid var(--card-border); 
+        border-radius: 24px; 
+        overflow: hidden;
+        display: flex; flex-direction: column; 
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+        position: relative;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        animation: cardPopIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; 
+        opacity: 0; transform: translateY(20px) scale(0.98);
+        transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
+    }
+    .asset-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--card-hover-shadow);
+    }
+    @keyframes cardPopIn { 
+        to { opacity: 1; transform: translateY(0) scale(1); } 
+    }
+
+    .asset-card-img {
+        width: 100%; height: 210px; 
+        background: var(--btn-bg);
+        display: flex; justify-content: center; align-items: center;
+        color: var(--text-muted); cursor: zoom-in; overflow: hidden; position: relative;
+        border-bottom: 1px solid var(--panel-border);
+    }
+    .asset-card-img img { 
+        width: 100%; height: 100%; object-fit: cover; 
+        transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s; 
+        opacity: 0;
+    }
+    .asset-card:hover .asset-card-img img { transform: scale(1.03); }
+    
+    .img-count-badge {
+        position: absolute; top: 16px; right: 16px;
+        background: rgba(0,0,0,0.5); color: #fff; padding: 6px 12px; border-radius: 100px;
+        font-size: 12px; font-weight: 700; backdrop-filter: blur(10px); pointer-events: none;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .audio-player-ui {
+        width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        gap: 16px; background: rgba(0,0,0,0.02);
+    }
+    .audio-icon { font-size: 32px; color: var(--accent); filter: drop-shadow(0 0 10px var(--accent-glow)); }
+    .audio-player-ui audio { width: 85%; outline: none; border-radius: 20px; }
+    
+    .asset-card-content { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+    .asset-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .asset-card-title { font-size: 18px; font-weight: 900; letter-spacing: -0.3px; color: var(--text-main); }
+    
+    .status-badge { 
+        font-size: 12px; padding: 6px 12px; border-radius: 100px; font-weight: 700; 
+        letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;
+    }
+    .status-badge::before {
+        content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    }
+    .status-已定稿 { background: var(--status-已定稿-bg); color: var(--status-已定稿-color); }
+    .status-已定稿::before { background: var(--status-已定稿-color); box-shadow: 0 0 8px var(--status-已定稿-color); }
+    .status-制作中 { background: var(--status-制作中-bg); color: var(--status-制作中-color); }
+    .status-制作中::before { background: var(--status-制作中-color); box-shadow: 0 0 8px var(--status-制作中-color); }
+    .status-待定 { background: var(--status-待定-bg); color: var(--status-待定-color); }
+    .status-待定::before { background: var(--status-待定-color); }
+
+    .asset-card-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .asset-card-actions { margin-top: auto; display: flex; gap: 12px; }
+
+    .btn { background: var(--btn-bg); border: 1px solid var(--panel-border); color: var(--text-main); padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 1; transition: all 0.2s; }
+    .btn:hover { background: var(--panel-border); }
+    .btn-danger:hover { background: rgba(255, 59, 48, 0.1); color: #ff453a; border-color: rgba(255, 59, 48, 0.3); }
+
+    /* 悬浮添加按钮 */
+    .fab {
+        position: fixed; bottom: 56px; right: 56px; width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), #ff6b9d); color: #fff; font-size: 36px; border: none; cursor: pointer;
+        display: flex; justify-content: center; align-items: center; box-shadow: 0 12px 32px var(--accent-glow);
+        transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 100;
+    }
+    .fab:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 16px 48px var(--accent-glow); }
+
+    /* ================= 右键菜单 ================= */
+    .context-menu {
+        position: fixed; display: none; z-index: 3000;
+        background: var(--panel-bg); border: 1px solid var(--panel-border);
+        border-radius: 12px; padding: 8px; backdrop-filter: blur(20px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        min-width: 160px; flex-direction: column; gap: 4px;
+    }
+    .ctx-item {
+        padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500;
+        cursor: pointer; transition: background 0.2s; color: var(--text-main);
+    }
+    .ctx-item:hover { background: var(--btn-bg); }
+    .ctx-item.danger { color: #ff453a; }
+    .ctx-item.danger:hover { background: rgba(255, 69, 58, 0.1); }
+
+    /* ================= 弹窗与预览 ================= */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal { background: var(--bg); width: 100%; max-width: 520px; border-radius: 24px; padding: 40px; border: 1px solid var(--panel-border); transform: translateY(30px) scale(0.95); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 24px 64px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;}
+    .modal-overlay.active .modal { transform: translateY(0) scale(1); }
+    .modal h2 { font-size: 24px; margin-bottom: 28px; font-weight: 800; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;}
+    .form-group input, .form-group select, .form-group textarea { width: 100%; background: var(--panel-bg); border: 1px solid var(--panel-border); color: var(--text-main); padding: 14px; border-radius: 12px; font-size: 14px; outline: none; font-family: inherit; transition: border 0.2s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    
+    #image-upload, #audio-upload { display: none; }
+
+    .modal-actions { display: flex; gap: 16px; margin-top: 32px; }
+    .modal-actions .btn { padding: 14px; font-size: 15px; border-radius: 12px; }
+    .btn-primary { background: var(--accent); border: none; color: #fff; }
+    .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 4px 15px var(--accent-glow); }
+
+    /* 全屏预览 */
+    .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s; overflow: hidden; }
+    .lightbox.active { opacity: 1; pointer-events: auto; }
+    .lightbox-img-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; cursor: grab; position: relative;}
+    .lightbox-img-container:active { cursor: grabbing; }
+    
+    .lightbox img { 
+        max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); 
+        transition: transform 0.1s ease-out; user-select: none; -webkit-user-drag: none; 
+    }
+    
+    /* 苹果级切换动画 */
+    .apple-anim { animation: appleFadeSlide 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+    @keyframes appleFadeSlide {
+        0% { opacity: 0; transform: translateX(30px) scale(0.95); }
+        100% { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    .lightbox-close { position: absolute; top: 32px; right: 40px; color: rgba(255,255,255,0.6); font-size: 40px; cursor: pointer; transition: color 0.2s, transform 0.2s; z-index: 2001; }
+    .lightbox-close:hover { color: #fff; transform: scale(1.1); }
+
+    .lightbox-nav {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        width: 56px; height: 56px; background: rgba(255,255,255,0.1); border-radius: 50%;
+        display: flex; justify-content: center; align-items: center; color: #fff; font-size: 24px;
+        cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px); z-index: 2002;
+        user-select: none;
+    }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.2); transform: translateY(-50%) scale(1.1); }
+    .lightbox-prev { left: 40px; }
+    .lightbox-next { right: 40px; }
+    .lightbox-indicator {
+        position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+        color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; letter-spacing: 2px;
+        background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 100px; backdrop-filter: blur(10px);
+    }
+
+    /* 底部时间栏 */
+    .time-bar { position: fixed; bottom: 32px; left: 64px; font-family: "SF Mono", monospace; font-size: 14px; color: var(--text-muted); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; pointer-events: none; z-index: 100; }
+    .time-bar .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+</style>
+</head>
+<body>
+
+    <canvas id="bg-canvas" width="1920" height="953"></canvas>
+
+    <header>
+        <div class="title-area" id="title-area">
+            <h1 id="main-title" contenteditable="true" spellcheck="false">资产管理仪表盘</h1>
+            <p>ASSET MANAGEMENT SYSTEM</p>
+        </div>
+        <div class="stats">
+            <div class="stat-pill"><div class="label">人物</div><div class="value" id="stat-人物">3</div></div>
+            <div class="stat-pill"><div class="label">场景</div><div class="value" id="stat-场景">1</div></div>
+            <div class="stat-pill"><div class="label">道具</div><div class="value" id="stat-道具">0</div></div>
+            <div class="stat-pill"><div class="label">音色</div><div class="value" id="stat-音色">1</div></div>
+            
+            <div class="lamp-container" id="lamp-switch" title="拉拽切换主题">
+                <div class="lamp-wire" style=""></div>
+                <div class="lamp-bulb" style=""></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="control-bar">
+            <nav class="tabs" id="main-tabs">
+                <button class="tab-btn active" data-type="人物">人物资产</button>
+                <button class="tab-btn" data-type="场景">场景资产</button>
+                <button class="tab-btn" data-type="道具">道具资产</button>
+                <button class="tab-btn" data-type="音色">音色资产</button>
+            </nav>
+            <button class="back-btn" id="back-btn">← 返回剧集列表</button>
+        </div>
+
+        <section class="view-section active" id="view-tarot">
+            <div class="tarot-area" id="tarot-area"><div class="tarot-card-wrapper" style="--tx: -50px; --ry: -7.5deg; --rz: -1.5deg; --tz: -15px; --i: 0;">
+                <div class="tarot-card">
+                    
+                </div>
+                <div class="tarot-content">
+                    <div class="tarot-title">《黑手党的绝嗣老婆》</div>
+                    <div class="tarot-count">📁 2 项资产</div>
+                </div>
+            </div><div class="tarot-card-wrapper" style="--tx: 50px; --ry: 7.5deg; --rz: 1.5deg; --tz: -15px; --i: 1;">
+                <div class="tarot-card">
+                    
+                </div>
+                <div class="tarot-content">
+                    <div class="tarot-title">《The Mafia Don Hired Me as His》</div>
+                    <div class="tarot-count">📁 1 项资产</div>
+                </div>
+            </div></div>
+        </section>
+
+        <section class="view-section" id="view-grid">
+            <div class="grid-container" id="asset-grid"></div>
+        </section>
+    </main>
+
+    <button class="fab" id="add-btn">+</button>
+
+    <div class="time-bar">
+        <div class="dot"></div>
+        <span id="current-time">2026/10/21 17:38:01</span>
+    </div>
+
+    <!-- 右键菜单 -->
+    <div class="context-menu" id="context-menu" style="display: none;">
+        <div class="ctx-item" id="ctx-edit">✏️ 修改剧名</div>
+        <div class="ctx-item" id="ctx-date">📅 标记创建日期</div>
+        <div class="ctx-item danger" id="ctx-delete">🗑 删除整个剧集</div>
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h2 id="modal-title">添加新资产</h2>
+            <input type="hidden" id="edit-id">
+            
+            <div class="form-group">
+                <label>所属剧集 (Drama)</label>
+                <input type="text" id="asset-drama" placeholder="例如：黑手党的绝嗣老婆" list="drama-list">
+                <datalist id="drama-list"></datalist>
+            </div>
+            <div class="form-group">
+                <label>资产名称</label>
+                <input type="text" id="asset-name" placeholder="例如：林晚...">
+            </div>
+            <div class="form-group">
+                <label>制作状态</label>
+                <select id="asset-status">
+                    <option value="已定稿">已定稿</option>
+                    <option value="制作中">制作中</option>
+                    <option value="待定">待定</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="upload-group"></div>
+
+            <div class="form-group">
+                <label>详细信息 / Prompt</label>
+                <textarea id="asset-desc" placeholder="外观、参数等..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancel-btn">取消</button>
+                <button class="btn btn-primary" id="save-btn">保存资产</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片全屏预览 -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">×</span>
+        <div class="lightbox-nav lightbox-prev" onclick="prevImage(event)">‹</div>
+        <div class="lightbox-nav lightbox-next" onclick="nextImage(event)">›</div>
+        <div class="lightbox-img-container" id="lightbox-container">
+            <img id="lightbox-img" src="file:///D:/MyWork/3-UI%E8%AE%BE%E8%AE%A1/V5.2.html" alt="Preview" style="transition: transform 0.1s ease-out;">
+        </div>
+        <div class="lightbox-indicator" id="lightbox-indicator">1 / 1</div>
+    </div>
+
+<script>
+    // ================= 0. 星空粒子与流星渲染 =================
+    function initStarfield() {
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, stars = [], meteors = [];
+        
+        function resize() { 
+            width = canvas.width = window.innerWidth; 
+            height = canvas.height = window.innerHeight; 
+        }
+        window.addEventListener('resize', resize); 
+        resize();
+
+        class Star { 
+            constructor() { 
+                this.x = Math.random() * width; 
+                this.y = Math.random() * height; 
+                this.size = Math.random() * 1.5 + 0.5; 
+                this.alpha = Math.random(); 
+                this.speed = Math.random() * 0.02 + 0.005; 
+            } 
+            draw() { 
+                this.alpha += this.speed; 
+                if(this.alpha > 1 || this.alpha < 0) this.speed *= -1; 
+                ctx.beginPath(); 
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(this.alpha)})`; 
+                ctx.fill(); 
+            } 
+        }
+        
+        class Meteor { 
+            constructor() { 
+                this.x = Math.random() * width + 500; 
+                this.y = -100; 
+                this.len = Math.random() * 200 + 100; 
+                this.speed = Math.random() * 10 + 8; 
+                this.angle = Math.PI / 4; 
+                this.opacity = 1; 
+            } 
+            update() { 
+                this.x -= Math.cos(this.angle) * this.speed; 
+                this.y += Math.sin(this.angle) * this.speed; 
+                if (this.y > height) this.opacity = 0; 
+            } 
+            draw() { 
+                const endX = this.x + Math.cos(this.angle) * this.len; 
+                const endY = this.y - Math.sin(this.angle) * this.len; 
+                let grad = ctx.createLinearGradient(this.x, this.y, endX, endY); 
+                grad.addColorStop(0, `rgba(255, 42, 109, ${this.opacity})`); 
+                grad.addColorStop(1, 'rgba(255, 42, 109, 0)'); 
+                ctx.beginPath(); 
+                ctx.moveTo(this.x, this.y); 
+                ctx.lineTo(endX, endY); 
+                ctx.strokeStyle = grad; 
+                ctx.lineWidth = 1.5; 
+                ctx.stroke(); 
+            } 
+        }
+        
+        for(let i=0; i<150; i++) stars.push(new Star());
+        
+        function animate() { 
+            ctx.clearRect(0, 0, width, height); 
+            stars.forEach(s => s.draw()); 
+            if(Math.random() < 0.02) meteors.push(new Meteor()); 
+            for(let i = meteors.length-1; i>=0; i--) { 
+                meteors[i].update(); 
+                meteors[i].draw(); 
+                if(meteors[i].opacity === 0) meteors.splice(i, 1); 
+            } 
+            requestAnimationFrame(animate); 
+        }
+        animate();
+    }
+    initStarfield();
+
+    // ================= 1. IndexedDB 封装 =================
+    let db;
+    const dbReq = indexedDB.open('DramaAssetDB', 1);
+    dbReq.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains('files')) {
+            db.createObjectStore('files'); 
+        }
+    };
+    dbReq.onsuccess = (e) => {
+        db = e.target.result;
+        initApp(); 
+    };
+
+    function saveFileToDB(key, fileBlob) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('files', 'readwrite');
+            const store = tx.objectStore('files');
+            const req = store.put(fileBlob, key);
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    function getFileFromDB(key) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('files', 'readonly');
+            const store = tx.objectStore('files');
+            const req = store.get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    function deleteFileFromDB(key) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('files', 'readwrite');
+            const store = tx.objectStore('files');
+            const req = store.delete(key);
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    const urlCache = new Map();
+    async function getOrCreateObjectURL(key) {
+        if (!key) return '';
+        if (key.startsWith('data:image') || key.startsWith('data:audio')) return key;
+        
+        if (urlCache.has(key)) return urlCache.get(key);
+        
+        const blob = await getFileFromDB(key);
+        if (!blob) return '';
+        const url = URL.createObjectURL(blob);
+        urlCache.set(key, url);
+        return url;
+    }
+
+    // ================= 2. 业务逻辑与状态 =================
+    let assets = JSON.parse(localStorage.getItem('sys_assets_v5')) || {
+        "人物": [
+            { id: '1', drama: '黑手党的绝嗣老婆', name: '林晚', status: '已定稿', desc: '黑长直，核心女主', imgs: [], audio: '' },
+            { id: '2', drama: '黑手党的绝嗣老婆', name: '马克', status: '制作中', desc: '黑帮大佬', imgs: [], audio: '' },
+            { id: '3', drama: '穿越之我是霸总', name: '顾言', status: '已定稿', desc: '霸道总裁', imgs: [], audio: '' }
+        ],
+        "场景": [{ id: '4', drama: '黑手党的绝嗣老婆', name: '别墅客厅', status: '待定', desc: '夜景', imgs: [], audio: '' }],
+        "道具": [], 
+        "音色": [{ id: '5', drama: '黑手党的绝嗣老婆', name: '林晚音色', status: '已定稿', desc: '御姐音', imgs: [], audio: '' }]
+    };
+
+    let dramaMeta = JSON.parse(localStorage.getItem('sys_drama_meta')) || {};
+    let currentType = '人物';
+    let currentDrama = null;
+    
+    let tempImgsKeys = []; 
+    let tempAudioKey = ''; 
+
+    const tarotArea = document.getElementById('tarot-area');
+    const assetGrid = document.getElementById('asset-grid');
+    const viewTarot = document.getElementById('view-tarot');
+    const viewGrid = document.getElementById('view-grid');
+    const backBtn = document.getElementById('back-btn');
+    const titleArea = document.getElementById('title-area');
+
+    function initApp() {
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + now.toLocaleTimeString('zh-CN', { hour12: false });
+        }, 1000);
+
+        let currentTheme = localStorage.getItem('sys_theme') || 'neon';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        
+        renderTarot();
+    }
+
+    function updateStats() { for (let key in assets) { document.getElementById(`stat-${key}`).innerText = assets[key].length; } }
+    function updateDatalist() {
+        const list = document.getElementById('drama-list'); list.innerHTML = '';
+        let allDramas = new Set(); for(let k in assets) assets[k].forEach(a => allDramas.add(a.drama));
+        allDramas.forEach(d => { if(!d) return; let opt = document.createElement('option'); opt.value = d; list.appendChild(opt); });
+    }
+
+    // ================= 3. 渲染视图 =================
+
+    async function renderTarot() {
+        tarotArea.innerHTML = ''; updateStats();
+        let dramas = [...new Set(assets[currentType].map(a => a.drama || '未命名剧集'))];
+        if (dramas.length === 0) { tarotArea.innerHTML = `<div style="color:var(--text-muted); font-size:16px;">暂无剧集，点击右下角 + 创建资产</div>`; return; }
+        
+        let total = dramas.length;
+        for (let index = 0; index < dramas.length; index++) {
+            const drama = dramas[index];
+            let dramaAssets = assets[currentType].filter(a => (a.drama || '未命名剧集') === drama);
+            
+            let coverKey = '';
+            for(let a of dramaAssets) { if(a.imgs && a.imgs.length > 0) { coverKey = a.imgs[0]; break; } }
+            let coverUrl = await getOrCreateObjectURL(coverKey);
+
+            let wrapper = document.createElement('div');
+            wrapper.className = 'tarot-card-wrapper';
+            
+            let center = (total - 1) / 2; let offset = index - center;
+            wrapper.style.setProperty('--tx', `${offset * 100}px`); 
+            wrapper.style.setProperty('--ry', `${offset * 15}deg`);
+            wrapper.style.setProperty('--rz', `${offset * 3}deg`); 
+            wrapper.style.setProperty('--tz', `${-Math.abs(offset) * 30}px`);
+            wrapper.style.setProperty('--i', index);
+            
+            wrapper.onclick = () => openDrama(drama);
+            wrapper.oncontextmenu = (e) => showContextMenu(e, drama);
+
+            wrapper.innerHTML = `
+                <div class="tarot-card">
+                    ${coverUrl ? `<img src="${coverUrl}" class="tarot-card-cover">` : ''}
+                </div>
+                <div class="tarot-content">
+                    <div class="tarot-title">${drama}</div>
+                    <div class="tarot-count">📁 ${dramaAssets.length} 项资产</div>
+                </div>
+            `;
+            tarotArea.appendChild(wrapper);
+        }
+    }
+
+    async function renderGrid() {
+        assetGrid.innerHTML = ''; if(!currentDrama) return;
+        let filtered = assets[currentType].filter(a => (a.drama || '未命名剧集') === currentDrama);
+        
+        for (let index = 0; index < filtered.length; index++) {
+            const asset = filtered[index];
+            const card = document.createElement('div');
+            card.className = 'asset-card'; 
+            card.style.animationDelay = `${index * 0.05}s`;
+            
+            let mediaHtml = '';
+            if (currentType === '音色') {
+                let audioUrl = await getOrCreateObjectURL(asset.audio);
+                mediaHtml = `
+                    <div class="audio-player-ui">
+                        <div class="audio-icon">🎙️</div>
+                        ${audioUrl ? `<audio controls src="${audioUrl}"></audio>` : `<span style="font-size:12px;color:var(--text-muted);">暂无音频</span>`}
+                    </div>
+                `;
+            } else {
+                let firstImgUrl = await getOrCreateObjectURL(asset.imgs && asset.imgs.length > 0 ? asset.imgs[0] : '');
+                let badgeHtml = asset.imgs && asset.imgs.length > 1 ? `<div class="img-count-badge">1 / ${asset.imgs.length}</div>` : '';
+                mediaHtml = firstImgUrl ? 
+                    `<img src="${firstImgUrl}" alt="${asset.name}" onclick="openLightbox('${asset.id}', 0)">${badgeHtml}` : 
+                    `<span>📷 暂无图片</span>`;
+            }
+
+            card.innerHTML = `
+                <div class="asset-card-img">${mediaHtml}</div>
+                <div class="asset-card-content">
+                    <div class="asset-card-header">
+                        <div class="asset-card-title">${asset.name}</div>
+                        <div class="status-badge status-${asset.status}">${asset.status}</div>
+                    </div>
+                    <div class="asset-card-desc">${asset.desc || '暂无描述'}</div>
+                    <div class="asset-card-actions">
+                        <button class="btn" onclick="editAsset('${asset.id}')">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteAsset('${asset.id}')">删除</button>
+                    </div>
+                </div>
+            `;
+            assetGrid.appendChild(card);
+
+            const imgEl = card.querySelector('.asset-card-img img');
+            if(imgEl) setTimeout(() => { imgEl.style.opacity = 1; }, 100);
+        }
+    }
+
+    // ================= 4. 交互逻辑 =================
+
+    function openDrama(drama) {
+        currentDrama = drama;
+        titleArea.innerHTML = `
+            <h1 style="color:var(--text-main); background:none; -webkit-text-fill-color:initial; cursor:default;">${drama}</h1>
+            <p style="color:var(--accent);">ASSET MANAGEMENT DASHBOARD</p>
+        `;
+        backBtn.classList.add('show');
+        viewTarot.classList.remove('active');
+        setTimeout(async () => {
+            viewTarot.style.display = 'none'; viewGrid.style.display = 'block';
+            await renderGrid();
+            viewGrid.offsetHeight; viewGrid.classList.add('active');
+        }, 300);
+    }
+
+    backBtn.onclick = () => {
+        currentDrama = null; 
+        titleArea.innerHTML = `
+            <h1 id="main-title" contenteditable="true" spellcheck="false">${localStorage.getItem('sys_title') || '影视资产中枢'}</h1>
+            <p>ASSET MANAGEMENT SYSTEM</p>
+        `;
+        const newTitle = document.getElementById('main-title');
+        newTitle.addEventListener('input', () => localStorage.setItem('sys_title', newTitle.innerText));
+        newTitle.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); newTitle.blur(); } });
+
+        backBtn.classList.remove('show');
+        viewGrid.classList.remove('active');
+        setTimeout(() => {
+            viewGrid.style.display = 'none'; viewTarot.style.display = 'block';
+            renderTarot();
+            viewTarot.offsetHeight; viewTarot.classList.add('active');
+        }, 300);
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active'); currentType = e.target.dataset.type;
+            if(currentDrama) { currentDrama = null; backBtn.click(); }
+            renderTarot();
+        });
+    });
+
+    document.getElementById('lamp-switch').onclick = () => {
+        const lamp = document.getElementById('lamp-switch');
+        const wire = lamp.querySelector('.lamp-wire');
+        const bulb = lamp.querySelector('.lamp-bulb');
+        wire.style.height = '65px'; bulb.style.transform = 'translateY(25px)';
+        setTimeout(() => {
+            wire.style.height = ''; bulb.style.transform = '';
+            let currentTheme = document.documentElement.getAttribute('data-theme');
+            currentTheme = currentTheme === 'neon' ? 'morandi' : 'neon';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('sys_theme', currentTheme);
+        }, 200);
+    };
+
+    document.getElementById('main-title').addEventListener('input', (e) => localStorage.setItem('sys_title', e.target.innerText));
+    document.getElementById('main-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+
+    // ============ 右键菜单 ============
+    const contextMenu = document.getElementById('context-menu');
+    let activeContextDrama = '';
+
+    window.showContextMenu = (e, drama) => {
+        e.preventDefault();
+        activeContextDrama = drama;
+        let x = e.clientX; let y = e.clientY;
+        if (x + 180 > window.innerWidth) x -= 180;
+        if (y + 150 > window.innerHeight) y -= 150;
+        contextMenu.style.left = x + 'px';
+        contextMenu.style.top = y + 'px';
+        contextMenu.style.display = 'flex';
+    }
+
+    document.addEventListener('click', () => { contextMenu.style.display = 'none'; });
+
+    document.getElementById('ctx-edit').onclick = () => {
+        let newName = prompt('请输入新的剧名', activeContextDrama);
+        if(newName && newName.trim() !== activeContextDrama) {
+            for(let k in assets) {
+                assets[k].forEach(a => { if(a.drama === activeContextDrama) a.drama = newName.trim(); });
+            }
+            if(dramaMeta[activeContextDrama]) {
+                dramaMeta[newName.trim()] = dramaMeta[activeContextDrama];
+                delete dramaMeta[activeContextDrama];
+            }
+            localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+            localStorage.setItem('sys_drama_meta', JSON.stringify(dramaMeta));
+            renderTarot();
+        }
+        contextMenu.style.display = 'none';
+    };
+
+    document.getElementById('ctx-date').onclick = () => {
+        let dateStr = dramaMeta[activeContextDrama] || new Date().toISOString().split('T')[0];
+        let newDate = prompt('设置该剧集创建日期 (YYYY-MM-DD)：', dateStr);
+        if(newDate) {
+            dramaMeta[activeContextDrama] = newDate;
+            localStorage.setItem('sys_drama_meta', JSON.stringify(dramaMeta));
+            alert(`已标记《${activeContextDrama}》的创建日期为：${newDate}`);
+        }
+        contextMenu.style.display = 'none';
+    };
+
+    document.getElementById('ctx-delete').onclick = async () => {
+        if(confirm(`⚠️ 警告：确定要删除整个剧集《${activeContextDrama}》及其所有资产吗？此操作不可逆。`)) {
+            for(let k in assets) {
+                const toDelete = assets[k].filter(a => a.drama === activeContextDrama);
+                for (const a of toDelete) {
+                    if(a.imgs) a.imgs.forEach(async key => { if(!key.startsWith('data:')) await deleteFileFromDB(key); });
+                    if(a.audio && !a.audio.startsWith('data:')) await deleteFileFromDB(a.audio);
+                }
+                assets[k] = assets[k].filter(a => a.drama !== activeContextDrama);
+            }
+            delete dramaMeta[activeContextDrama];
+            localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+            localStorage.setItem('sys_drama_meta', JSON.stringify(dramaMeta));
+            renderTarot();
+        }
+        contextMenu.style.display = 'none';
+    };
+
+    // ============ 弹窗和表单处理 ============
+    const modal = document.getElementById('modal');
+    const uploadGroup = document.getElementById('upload-group');
+
+    document.getElementById('add-btn').onclick = () => {
+        document.getElementById('modal-title').innerText = '添加新资产';
+        document.getElementById('edit-id').value = '';
+        document.getElementById('asset-drama').value = currentDrama || '';
+        document.getElementById('asset-name').value = '';
+        document.getElementById('asset-status').value = '待定';
+        document.getElementById('asset-desc').value = '';
+        tempImgsKeys = []; tempAudioKey = '';
+        buildUploadUI(); updateDatalist(); modal.classList.add('active');
+    };
+
+    function buildUploadUI() {
+        if (currentType === '音色') {
+            uploadGroup.innerHTML = `
+                <label>上传音频文件 (MP3/WAV)</label>
+                <button class="btn" type="button" onclick="document.getElementById('audio-upload').click()" style="width: 100%;">选择本地音频</button>
+                <input type="file" id="audio-upload" accept="audio/*" onchange="handleAudioUpload(event)">
+                <div id="upload-preview" style="margin-top:8px; font-size:12px; color:var(--text-muted);">${tempAudioKey ? '已包含音频' : '未选择音频'}</div>
+            `;
+        } else {
+            uploadGroup.innerHTML = `
+                <label>上传参考图 (支持多选)</label>
+                <button class="btn" type="button" onclick="document.getElementById('image-upload').click()" style="width: 100%;">选择本地图片</button>
+                <input type="file" id="image-upload" accept="image/*" multiple onchange="handleImageUpload(event)">
+                <div id="upload-preview" style="margin-top:8px; font-size:12px; color:var(--text-muted);">${tempImgsKeys.length > 0 ? `已选择 ${tempImgsKeys.length} 张图片` : '未选择图片'}</div>
+            `;
+        }
+    }
+
+    window.handleImageUpload = async (e) => {
+        const files = Array.from(e.target.files); if (files.length === 0) return;
+        document.getElementById('upload-preview').innerText = '正在存储原图，请稍候...';
+        
+        for (const file of files) {
+            const key = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            await saveFileToDB(key, file);
+            tempImgsKeys.push(key);
+        }
+        document.getElementById('upload-preview').innerText = `已选择 ${tempImgsKeys.length} 张图片`;
+    };
+
+    window.handleAudioUpload = async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        document.getElementById('upload-preview').innerText = '正在存储音频...';
+        
+        const key = 'audio_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        await saveFileToDB(key, file);
+        tempAudioKey = key;
+        document.getElementById('upload-preview').innerText = `已选择: ${file.name}`;
+    };
+
+    document.getElementById('cancel-btn').onclick = () => modal.classList.remove('active');
+
+    document.getElementById('save-btn').onclick = async () => {
+        const btn = document.getElementById('save-btn');
+        btn.innerText = '保存中...'; btn.style.opacity = '0.7';
+
+        const id = document.getElementById('edit-id').value;
+        const drama = document.getElementById('asset-drama').value.trim() || '未命名剧集';
+        const name = document.getElementById('asset-name').value;
+        const status = document.getElementById('asset-status').value;
+        const desc = document.getElementById('asset-desc').value;
+
+        if (!name) { alert('请填写资产名称！'); btn.innerText = '保存资产'; btn.style.opacity = '1'; return; }
+
+        if (id) {
+            const old = assets[currentType].find(a => a.id === id);
+            if(old.imgs) {
+                for (const oldKey of old.imgs) {
+                    if (!tempImgsKeys.includes(oldKey) && !oldKey.startsWith('data:')) {
+                        await deleteFileFromDB(oldKey);
+                    }
+                }
+            }
+            if(old.audio && old.audio !== tempAudioKey && !old.audio.startsWith('data:')) {
+                await deleteFileFromDB(old.audio);
+            }
+
+            const idx = assets[currentType].indexOf(old);
+            assets[currentType][idx] = { ...old, drama, name, status, desc, imgs: tempImgsKeys, audio: tempAudioKey };
+        } else {
+            assets[currentType].push({ id: Date.now().toString(), drama, name, status, desc, imgs: tempImgsKeys, audio: tempAudioKey });
+        }
+
+        localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+        btn.innerText = '保存资产'; btn.style.opacity = '1';
+        modal.classList.remove('active');
+        
+        if(currentDrama && currentDrama === drama) {
+            renderGrid();
+        } else {
+            if(currentDrama) backBtn.click(); else renderTarot();
+        }
+    };
+
+    window.editAsset = (id) => {
+        const asset = assets[currentType].find(a => a.id === id);
+        if (!asset) return;
+        document.getElementById('modal-title').innerText = '编辑资产';
+        document.getElementById('edit-id').value = asset.id;
+        document.getElementById('asset-drama').value = asset.drama || '未命名剧集';
+        document.getElementById('asset-name').value = asset.name;
+        document.getElementById('asset-status').value = asset.status;
+        document.getElementById('asset-desc').value = asset.desc;
+        
+        tempImgsKeys = asset.imgs ? [...asset.imgs] : [];
+        tempAudioKey = asset.audio || '';
+        
+        buildUploadUI(); updateDatalist(); modal.classList.add('active');
+    };
+
+    window.deleteAsset = async (id) => {
+        if(confirm('确认销毁该资产数据吗？不可恢复。')) {
+            const asset = assets[currentType].find(a => a.id === id);
+            if(asset) {
+                if(asset.imgs) for (const key of asset.imgs) { if(!key.startsWith('data:')) await deleteFileFromDB(key); }
+                if(asset.audio && !asset.audio.startsWith('data:')) await deleteFileFromDB(asset.audio);
+            }
+            assets[currentType] = assets[currentType].filter(a => a.id !== id);
+            localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+            renderGrid();
+        }
+    };
+
+    // ================= 5. 图片轮播与动效 =================
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxContainer = document.getElementById('lightbox-container');
+    const indicator = document.getElementById('lightbox-indicator');
+    const prevBtn = document.querySelector('.lightbox-prev');
+    const nextBtn = document.querySelector('.lightbox-next');
+
+    let currentImgArray = [];
+    let currentImgIndex = 0;
+    let scale = 1, isDragging = false, startX, startY, translateX = 0, translateY = 0;
+
+    window.openLightbox = async (assetId, startIndex = 0) => {
+        const asset = assets[currentType].find(a => a.id === assetId);
+        if(!asset || !asset.imgs || asset.imgs.length === 0) return;
+        
+        currentImgArray = asset.imgs;
+        currentImgIndex = startIndex;
+        
+        let urls = [];
+        for (const key of currentImgArray) {
+            urls.push(await getOrCreateObjectURL(key));
+        }
+        currentImgArray = urls; 
+
+        updateLightboxImage();
+        lightbox.classList.add('active');
+    }
+
+    function updateLightboxImage() {
+        scale = 1; translateX = 0; translateY = 0; 
+        lightboxImg.style.transition = 'none';
+        lightboxImg.style.transform = 'translate(0px, 0px) scale(1)';
+        
+        lightboxImg.src = currentImgArray[currentImgIndex];
+        indicator.innerText = `${currentImgIndex + 1} / ${currentImgArray.length}`;
+        
+        lightboxImg.classList.remove('apple-anim');
+        void lightboxImg.offsetWidth; 
+        lightboxImg.classList.add('apple-anim');
+        
+        if (currentImgArray.length <= 1) {
+            prevBtn.style.display = 'none'; nextBtn.style.display = 'none';
+        } else {
+            prevBtn.style.display = 'flex'; nextBtn.style.display = 'flex';
+        }
+        
+        setTimeout(() => {
+            lightboxImg.style.transition = 'transform 0.1s ease-out';
+        }, 450); 
+    }
+
+    window.prevImage = (e) => {
+        if(e) e.stopPropagation();
+        if (currentImgArray.length <= 1) return;
+        currentImgIndex = (currentImgIndex - 1 + currentImgArray.length) % currentImgArray.length;
+        updateLightboxImage();
+    }
+
+    window.nextImage = (e) => {
+        if(e) e.stopPropagation();
+        if (currentImgArray.length <= 1) return;
+        currentImgIndex = (currentImgIndex + 1) % currentImgArray.length;
+        updateLightboxImage();
+    }
+
+    window.closeLightbox = () => lightbox.classList.remove('active');
+
+    lightboxContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (e.deltaY < 0) scale += 0.1; else scale -= 0.1;
+        scale = Math.max(0.5, Math.min(scale, 5));
+        updateImgTransform();
+    }, { passive: false });
+
+    lightboxContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX - translateX; startY = e.clientY - translateY;
+        lightboxImg.style.transition = 'none'; 
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        translateX = e.clientX - startX; translateY = e.clientY - startY;
+        updateImgTransform();
+    });
+
+    window.addEventListener('mouseup', () => { 
+        isDragging = false; 
+        lightboxImg.style.transition = 'transform 0.1s ease-out';
+    });
+
+    function updateImgTransform() { lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`; }
+
+    document.addEventListener('keydown', (e) => {
+        if(!lightbox.classList.contains('active')) return;
+        if (e.key === 'Escape') { modal.classList.remove('active'); closeLightbox(); }
+        if (e.key === 'ArrowLeft') prevImage();
+        if (e.key === 'ArrowRight') nextImage();
+    });
+
+</script>
+
+</body></html>
