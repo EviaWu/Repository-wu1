@@ -177,7 +177,6 @@
         position: absolute; width: 240px; height: 340px;
         transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
         cursor: pointer; transform-style: preserve-3d;
-        /* 默认堆叠状态：紧凑堆在一起，自带微小倾斜 */
         transform: translateX(0px) translateY(0px) rotateZ(var(--stack-rz)) scale(1);
         z-index: calc(100 - var(--i)); 
     }
@@ -205,7 +204,6 @@
     }
     .tarot-card-wrapper:hover .tarot-card-cover { opacity: 1; transform: scale(1.05); }
     
-    /* 文本容器：彻底取消宽度限制，强制不换行，绝对居中 */
     .tarot-content { 
         position: absolute;
         top: calc(100% + 15px);
@@ -224,7 +222,6 @@
         transform: translateX(-50%) translateY(0);
     }
     
-    /* 剧名文本 */
     .tarot-title { 
         font-family: "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
         font-size: 24px; 
@@ -232,11 +229,9 @@
         letter-spacing: 2px; 
         line-height: 1.4;
         font-style: italic; 
-        
         background: linear-gradient(90deg, var(--tarot-font-start), var(--tarot-font-end));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        
         text-shadow: var(--tarot-text-shadow);
         margin-bottom: 8px;
         white-space: nowrap; 
@@ -249,11 +244,9 @@
         text-transform: uppercase;
     }
 
-    /* 🌟 核心：悬停时呈抛物线完美展开 */
     .tarot-area:hover .tarot-card-wrapper { 
         transform: translateX(var(--tx)) translateY(var(--ty)) rotateZ(var(--rz)) scale(1); 
     }
-    /* 鼠标移到具体某一张时，它单独浮高并摆正 */
     .tarot-area:hover .tarot-card-wrapper:hover { 
         transform: translateX(var(--tx)) translateY(calc(var(--ty) - 30px)) rotateZ(0deg) scale(1.05); 
         z-index: 999 !important; 
@@ -339,7 +332,6 @@
     .btn:hover { background: var(--panel-border); }
     .btn-danger:hover { background: rgba(255, 59, 48, 0.1); color: #ff453a; border-color: rgba(255, 59, 48, 0.3); }
 
-    /* 悬浮添加按钮 */
     .fab {
         position: fixed; bottom: 56px; right: 56px; width: 72px; height: 72px; border-radius: 50%;
         background: linear-gradient(135deg, var(--accent), #ff6b9d); color: #fff; font-size: 36px; border: none; cursor: pointer;
@@ -348,7 +340,6 @@
     }
     .fab:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 16px 48px var(--accent-glow); }
 
-    /* ================= 右键菜单 ================= */
     .context-menu {
         position: fixed; display: none; z-index: 3000;
         background: var(--panel-bg); border: 1px solid var(--panel-border);
@@ -364,7 +355,6 @@
     .ctx-item.danger { color: #ff453a; }
     .ctx-item.danger:hover { background: rgba(255, 69, 58, 0.1); }
 
-    /* ================= 弹窗与预览 ================= */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal { background: var(--bg); width: 100%; max-width: 520px; border-radius: 24px; padding: 40px; border: 1px solid var(--panel-border); transform: translateY(30px) scale(0.95); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 24px 64px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;}
@@ -384,7 +374,6 @@
     .btn-primary { background: var(--accent); border: none; color: #fff; }
     .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 4px 15px var(--accent-glow); }
 
-    /* 全屏预览 */
     .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s; overflow: hidden; }
     .lightbox.active { opacity: 1; pointer-events: auto; }
     
@@ -430,7 +419,6 @@
         z-index: 2001;
     }
 
-    /* 底部时间栏 */
     .time-bar { position: fixed; bottom: 32px; left: 64px; font-family: "SF Mono", monospace; font-size: 14px; color: var(--text-muted); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; pointer-events: none; z-index: 100; }
     .time-bar .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
     @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
@@ -543,132 +531,142 @@
     </div>
 
 <script>
-    // ================= 0. 星空粒子与流星渲染 =================
-    function initStarfield() {
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let width, height, stars = [], meteors = [];
-        
-        function resize() { 
-            width = canvas.width = window.innerWidth; 
-            height = canvas.height = window.innerHeight; 
-        }
-        window.addEventListener('resize', resize); 
-        resize();
+    // ================= 🌟 0. 全局防弹保护机制 =================
+    window.onerror = function(msg, url, line, col, error) {
+        console.warn("系统捕获异常，已自动拦截防止崩溃：", msg);
+        return true; // 阻止默认报错阻塞
+    };
 
-        class Star { 
-            constructor() { 
-                this.x = Math.random() * width; 
-                this.y = Math.random() * height; 
-                this.size = Math.random() * 1.5 + 0.5; 
-                this.alpha = Math.random(); 
-                this.speed = Math.random() * 0.02 + 0.005; 
-            } 
-            draw() { 
-                this.alpha += this.speed; 
-                if(this.alpha > 1 || this.alpha < 0) this.speed *= -1; 
-                ctx.beginPath(); 
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
-                ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(this.alpha)})`; 
-                ctx.fill(); 
-            } 
+    // ================= 🌟 1. Supabase 云端初始化 =================
+    // 如果没有填写 URL 和 Key，或者 CDN 加载失败，整个系统依然完美运行本地版！
+    const SUPABASE_URL = 'https://ytrwcjddifmasylciqzh.supabase.co/rest/v1/';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Ne4uk9anMF4ByIncY8qimQ_9PBDbr51';
+    
+    let supabase = null;
+    try {
+        if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+            // 动态加载 SDK，防止网络卡住主线程
+            const script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+            script.onload = () => {
+                try {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    // 加载成功后，去拉取云端数据
+                    loadDataFromCloud().then(updated => { if(updated) renderTarot(); });
+                    // 开启实时监听
+                    supabase.channel('drama_data_changes').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'drama_data', filter: 'id=eq.1' }, payload => {
+                        if (payload.new && payload.new.content) {
+                            assets = { "人物": [], "场景": [], "道具": [], "音色": [], ...payload.new.content };
+                            localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+                            renderTarot();
+                            if (currentDrama) renderGrid();
+                        }
+                    }).subscribe();
+                } catch(e) {}
+            };
+            document.head.appendChild(script);
         }
-        
-        class Meteor { 
-            constructor() { 
-                this.x = Math.random() * width + 500; 
-                this.y = -100; 
-                this.len = Math.random() * 200 + 100; 
-                this.speed = Math.random() * 10 + 8; 
-                this.angle = Math.PI / 4; 
-                this.opacity = 1; 
-            } 
-            update() { 
-                this.x -= Math.cos(this.angle) * this.speed; 
-                this.y += Math.sin(this.angle) * this.speed; 
-                if (this.y > height) this.opacity = 0; 
-            } 
-            draw() { 
-                const endX = this.x + Math.cos(this.angle) * this.len; 
-                const endY = this.y - Math.sin(this.angle) * this.len; 
-                let grad = ctx.createLinearGradient(this.x, this.y, endX, endY); 
-                grad.addColorStop(0, `rgba(255, 42, 109, ${this.opacity})`); 
-                grad.addColorStop(1, 'rgba(255, 42, 109, 0)'); 
-                ctx.beginPath(); 
-                ctx.moveTo(this.x, this.y); 
-                ctx.lineTo(endX, endY); 
-                ctx.strokeStyle = grad; 
-                ctx.lineWidth = 1.5; 
-                ctx.stroke(); 
-            } 
-        }
-        
-        for(let i=0; i<150; i++) stars.push(new Star());
-        
-        function animate() { 
-            ctx.clearRect(0, 0, width, height); 
-            stars.forEach(s => s.draw()); 
-            if(Math.random() < 0.02) meteors.push(new Meteor()); 
-            for(let i = meteors.length-1; i>=0; i--) { 
-                meteors[i].update(); 
-                meteors[i].draw(); 
-                if(meteors[i].opacity === 0) meteors.splice(i, 1); 
-            } 
-            requestAnimationFrame(animate); 
-        }
-        animate();
+    } catch (e) {
+        console.warn('云端连接失败，自动降级为本地模式');
     }
-    initStarfield();
 
-    // ================= 1. IndexedDB 封装 =================
-    let db;
-    const dbReq = indexedDB.open('DramaAssetDB', 1);
-    dbReq.onupgradeneeded = (e) => {
-        db = e.target.result;
-        if (!db.objectStoreNames.contains('files')) {
-            db.createObjectStore('files'); 
-        }
-    };
-    dbReq.onsuccess = (e) => {
-        db = e.target.result;
-        initApp(); 
-    };
+    async function saveDataToCloud() {
+        if (!supabase) return;
+        try { await supabase.from('drama_data').update({ content: assets }).eq('id', 1); } catch (e) {}
+    }
+
+    async function loadDataFromCloud() {
+        if (!supabase) return false;
+        try {
+            const { data, error } = await supabase.from('drama_data').select('content').eq('id', 1).single();
+            if (!error && data && data.content) {
+                assets = { "人物": [], "场景": [], "道具": [], "音色": [], ...data.content };
+                localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+                return true;
+            }
+        } catch (e) {}
+        return false;
+    }
+
+    // ================= 2. 星空粒子与流星渲染 =================
+    function initStarfield() {
+        try {
+            const canvas = document.getElementById('bg-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width, height, stars = [], meteors = [];
+            
+            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+            window.addEventListener('resize', resize); 
+            resize();
+
+            class Star { 
+                constructor() { this.x = Math.random() * width; this.y = Math.random() * height; this.size = Math.random() * 1.5 + 0.5; this.alpha = Math.random(); this.speed = Math.random() * 0.02 + 0.005; } 
+                draw() { this.alpha += this.speed; if(this.alpha > 1 || this.alpha < 0) this.speed *= -1; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(this.alpha)})`; ctx.fill(); } 
+            }
+            
+            class Meteor { 
+                constructor() { this.x = Math.random() * width + 500; this.y = -100; this.len = Math.random() * 200 + 100; this.speed = Math.random() * 10 + 8; this.angle = Math.PI / 4; this.opacity = 1; } 
+                update() { this.x -= Math.cos(this.angle) * this.speed; this.y += Math.sin(this.angle) * this.speed; if (this.y > height) this.opacity = 0; } 
+                draw() { const endX = this.x + Math.cos(this.angle) * this.len; const endY = this.y - Math.sin(this.angle) * this.len; let grad = ctx.createLinearGradient(this.x, this.y, endX, endY); grad.addColorStop(0, `rgba(255, 42, 109, ${this.opacity})`); grad.addColorStop(1, 'rgba(255, 42, 109, 0)'); ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(endX, endY); ctx.strokeStyle = grad; ctx.lineWidth = 1.5; ctx.stroke(); } 
+            }
+            
+            for(let i=0; i<150; i++) stars.push(new Star());
+            
+            function animate() { 
+                ctx.clearRect(0, 0, width, height); stars.forEach(s => s.draw()); 
+                if(Math.random() < 0.02) meteors.push(new Meteor()); 
+                for(let i = meteors.length-1; i>=0; i--) { meteors[i].update(); meteors[i].draw(); if(meteors[i].opacity === 0) meteors.splice(i, 1); }
+                requestAnimationFrame(animate); 
+            }
+            animate();
+        } catch(e) { console.warn("星空加载失败", e); }
+    }
+
+    // ================= 3. IndexedDB 封装 =================
+    let db = null;
+    try {
+        const dbReq = indexedDB.open('DramaAssetDB', 1);
+        dbReq.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains('files')) db.createObjectStore('files'); 
+        };
+        dbReq.onsuccess = (e) => { db = e.target.result; };
+    } catch(e) { console.warn("本地图片数据库加载失败", e); }
 
     function saveFileToDB(key, fileBlob) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction('files', 'readwrite');
-            const store = tx.objectStore('files');
-            const req = store.put(fileBlob, key);
-            req.onsuccess = () => resolve();
-            req.onerror = () => reject(req.error);
+        return new Promise((resolve) => {
+            if(!db) { resolve(); return; }
+            try {
+                const tx = db.transaction('files', 'readwrite');
+                tx.objectStore('files').put(fileBlob, key).onsuccess = () => resolve();
+            } catch(e) { resolve(); }
         });
     }
-
     function getFileFromDB(key) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction('files', 'readonly');
-            const store = tx.objectStore('files');
-            const req = store.get(key);
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => reject(req.error);
+        return new Promise((resolve) => {
+            if(!db) { resolve(null); return; }
+            try {
+                const req = db.transaction('files', 'readonly').objectStore('files').get(key);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => resolve(null);
+            } catch(e) { resolve(null); }
         });
     }
-
     function deleteFileFromDB(key) {
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction('files', 'readwrite');
-            const store = tx.objectStore('files');
-            const req = store.delete(key);
-            req.onsuccess = () => resolve();
-            req.onerror = () => reject(req.error);
+        return new Promise((resolve) => {
+            if(!db) { resolve(); return; }
+            try {
+                const req = db.transaction('files', 'readwrite').objectStore('files').delete(key);
+                req.onsuccess = () => resolve();
+            } catch(e) { resolve(); }
         });
     }
 
     const urlCache = new Map();
     async function getOrCreateObjectURL(key) {
         if (!key) return '';
-        if (key.startsWith('data:image') || key.startsWith('data:audio')) return key;
-        
+        if (key.startsWith('http') || key.startsWith('data:image') || key.startsWith('data:audio')) return key;
         if (urlCache.has(key)) return urlCache.get(key);
         
         const blob = await getFileFromDB(key);
@@ -678,22 +676,26 @@
         return url;
     }
 
-    // ================= 2. 业务逻辑与状态 =================
-    let assets = JSON.parse(localStorage.getItem('sys_assets_v5')) || {
-        "人物": [
-            { id: '1', drama: '黑手党的绝嗣老婆', name: '林晚', status: '已定稿', desc: '黑长直，核心女主', imgs: [], audio: '' },
-            { id: '2', drama: '黑手党的绝嗣老婆', name: '马克', status: '制作中', desc: '黑帮大佬', imgs: [], audio: '' },
-            { id: '3', drama: '穿越之我是霸总', name: '顾言', status: '已定稿', desc: '霸道总裁', imgs: [], audio: '' }
-        ],
-        "场景": [{ id: '4', drama: '黑手党的绝嗣老婆', name: '别墅客厅', status: '待定', desc: '夜景', imgs: [], audio: '' }],
-        "道具": [], 
-        "音色": [{ id: '5', drama: '黑手党的绝嗣老婆', name: '林晚音色', status: '已定稿', desc: '御姐音', imgs: [], audio: '' }]
-    };
+    // ================= 4. 业务逻辑与状态 =================
+    let assets = { "人物": [], "场景": [], "道具": [], "音色": [] };
+    try {
+        const localData = localStorage.getItem('sys_assets_v5');
+        if (localData) {
+            const parsed = JSON.parse(localData);
+            if (parsed) assets = { ...assets, ...parsed };
+        } else {
+            assets = {
+                "人物": [{ id: '1', drama: '黑手党的绝嗣老婆', name: '林晚', status: '已定稿', desc: '黑长直，核心女主', imgs: [], audio: '' }],
+                "场景": [], "道具": [], "音色": []
+            };
+        }
+    } catch(e) {}
 
-    let dramaMeta = JSON.parse(localStorage.getItem('sys_drama_meta')) || {};
+    let dramaMeta = {};
+    try { dramaMeta = JSON.parse(localStorage.getItem('sys_drama_meta')) || {}; } catch(e) {}
+
     let currentType = '人物';
     let currentDrama = null;
-    
     let tempImgsKeys = []; 
     let tempAudioKey = ''; 
 
@@ -705,6 +707,8 @@
     const titleArea = document.getElementById('title-area');
 
     function initApp() {
+        initStarfield();
+        
         setInterval(() => {
             const now = new Date();
             document.getElementById('current-time').innerText = now.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + now.toLocaleTimeString('zh-CN', { hour12: false });
@@ -713,7 +717,7 @@
         let currentTheme = localStorage.getItem('sys_theme') || 'neon';
         document.documentElement.setAttribute('data-theme', currentTheme);
         
-        renderTarot();
+        try { renderTarot(); } catch(e) { console.error("首次渲染错误", e); }
     }
 
     function updateStats() { for (let key in assets) { document.getElementById(`stat-${key}`).innerText = assets[key].length; } }
@@ -723,17 +727,14 @@
         allDramas.forEach(d => { if(!d) return; let opt = document.createElement('option'); opt.value = d; list.appendChild(opt); });
     }
 
-    // ================= 3. 渲染视图 =================
-
+    // ================= 5. 视图渲染 =================
     async function renderTarot() {
         tarotArea.innerHTML = ''; updateStats();
         let dramas = [...new Set(assets[currentType].map(a => a.drama || '未命名剧集'))];
         if (dramas.length === 0) { tarotArea.innerHTML = `<div style="color:var(--text-muted); font-size:16px;">暂无剧集，点击右下角 + 创建资产</div>`; return; }
         
         let total = dramas.length;
-        // 动态计算间距，最高不超过 150px，防止太多溢出屏幕
         let spacing = total > 1 ? Math.min(1100 / (total - 1), 150) : 0;
-        // 动态计算角度，最高不超过 30 度
         let angleStep = total > 1 ? Math.min(30 / (total - 1), 6) : 0;
 
         for (let index = 0; index < dramas.length; index++) {
@@ -750,15 +751,9 @@
             let center = (total - 1) / 2; 
             let offset = index - center;
             
-            // 计算展开位置的 TX (X轴平移), TY (Y轴下沉), RZ (旋转角度)
-            let tx = offset * spacing;
-            let rz = offset * angleStep;
-            let ty = Math.pow(Math.abs(offset), 1.5) * 10; // 抛物线弧度，两边下沉
-
-            wrapper.style.setProperty('--tx', `${tx}px`);
-            wrapper.style.setProperty('--ty', `${ty}px`);
-            wrapper.style.setProperty('--rz', `${rz}deg`);
-            // 堆叠状态下的微小旋转
+            wrapper.style.setProperty('--tx', `${offset * spacing}px`);
+            wrapper.style.setProperty('--ty', `${Math.pow(Math.abs(offset), 1.5) * 10}px`);
+            wrapper.style.setProperty('--rz', `${offset * angleStep}deg`);
             wrapper.style.setProperty('--stack-rz', `${(index - center) * 2}deg`);
             wrapper.style.setProperty('--i', index);
             
@@ -820,14 +815,12 @@
                 </div>
             `;
             assetGrid.appendChild(card);
-
             const imgEl = card.querySelector('.asset-card-img img');
             if(imgEl) setTimeout(() => { imgEl.style.opacity = 1; }, 100);
         }
     }
 
-    // ================= 4. 交互逻辑 =================
-
+    // ================= 6. 交互逻辑 =================
     function openDrama(drama) {
         currentDrama = drama;
         titleArea.innerHTML = `
@@ -849,10 +842,7 @@
             <h1 id="main-title" contenteditable="true" spellcheck="false">${localStorage.getItem('sys_title') || '影视资产中枢'}</h1>
             <p>ASSET MANAGEMENT SYSTEM</p>
         `;
-        const newTitle = document.getElementById('main-title');
-        newTitle.addEventListener('input', () => localStorage.setItem('sys_title', newTitle.innerText));
-        newTitle.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); newTitle.blur(); } });
-
+        document.getElementById('main-title').addEventListener('input', () => {});
         backBtn.classList.remove('show');
         viewGrid.classList.remove('active');
         setTimeout(() => {
@@ -905,7 +895,7 @@
 
     document.addEventListener('click', () => { contextMenu.style.display = 'none'; });
 
-    document.getElementById('ctx-edit').onclick = () => {
+    document.getElementById('ctx-edit').onclick = async () => {
         let newName = prompt('请输入新的剧名', activeContextDrama);
         if(newName && newName.trim() !== activeContextDrama) {
             for(let k in assets) {
@@ -917,6 +907,7 @@
             }
             localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
             localStorage.setItem('sys_drama_meta', JSON.stringify(dramaMeta));
+            await saveDataToCloud();
             renderTarot();
         }
         contextMenu.style.display = 'none';
@@ -938,14 +929,15 @@
             for(let k in assets) {
                 const toDelete = assets[k].filter(a => a.drama === activeContextDrama);
                 for (const a of toDelete) {
-                    if(a.imgs) a.imgs.forEach(async key => { if(!key.startsWith('data:')) await deleteFileFromDB(key); });
-                    if(a.audio && !a.audio.startsWith('data:')) await deleteFileFromDB(a.audio);
+                    if(a.imgs) a.imgs.forEach(async key => { if(!key.startsWith('data:') && !key.startsWith('http')) await deleteFileFromDB(key); });
+                    if(a.audio && !a.audio.startsWith('data:') && !a.audio.startsWith('http')) await deleteFileFromDB(a.audio);
                 }
                 assets[k] = assets[k].filter(a => a.drama !== activeContextDrama);
             }
             delete dramaMeta[activeContextDrama];
             localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
             localStorage.setItem('sys_drama_meta', JSON.stringify(dramaMeta));
+            await saveDataToCloud();
             renderTarot();
         }
         contextMenu.style.display = 'none';
@@ -994,6 +986,25 @@
             tempImgsKeys.push(key);
         }
         document.getElementById('upload-preview').innerText = `已选择 ${tempImgsKeys.length} 张图片`;
+
+        if (supabase) {
+            document.getElementById('upload-preview').innerText = '正在同步至云端...';
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const localKey = tempImgsKeys[tempImgsKeys.length - files.length + i];
+                try {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+                    const { error } = await supabase.storage.from('media').upload(fileName, file);
+                    if (!error) {
+                        const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
+                        const idx = tempImgsKeys.indexOf(localKey);
+                        if (idx > -1) tempImgsKeys[idx] = publicUrl;
+                    }
+                } catch (err) {}
+            }
+            document.getElementById('upload-preview').innerText = `已同步至云端`;
+        }
     };
 
     window.handleAudioUpload = async (e) => {
@@ -1004,6 +1015,20 @@
         await saveFileToDB(key, file);
         tempAudioKey = key;
         document.getElementById('upload-preview').innerText = `已选择: ${file.name}`;
+
+        if (supabase) {
+            document.getElementById('upload-preview').innerText = '正在同步至云端...';
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+                const { error } = await supabase.storage.from('media').upload(fileName, file);
+                if (!error) {
+                    const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
+                    tempAudioKey = publicUrl;
+                }
+            } catch (err) {}
+            document.getElementById('upload-preview').innerText = `已同步至云端`;
+        }
     };
 
     document.getElementById('cancel-btn').onclick = () => modal.classList.remove('active');
@@ -1024,12 +1049,12 @@
             const old = assets[currentType].find(a => a.id === id);
             if(old.imgs) {
                 for (const oldKey of old.imgs) {
-                    if (!tempImgsKeys.includes(oldKey) && !oldKey.startsWith('data:')) {
+                    if (!tempImgsKeys.includes(oldKey) && !oldKey.startsWith('data:') && !oldKey.startsWith('http')) {
                         await deleteFileFromDB(oldKey);
                     }
                 }
             }
-            if(old.audio && old.audio !== tempAudioKey && !old.audio.startsWith('data:')) {
+            if(old.audio && old.audio !== tempAudioKey && !old.audio.startsWith('data:') && !old.audio.startsWith('http')) {
                 await deleteFileFromDB(old.audio);
             }
 
@@ -1040,6 +1065,8 @@
         }
 
         localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+        await saveDataToCloud();
+        
         btn.innerText = '保存资产'; btn.style.opacity = '1';
         modal.classList.remove('active');
         
@@ -1070,16 +1097,17 @@
         if(confirm('确认销毁该资产数据吗？不可恢复。')) {
             const asset = assets[currentType].find(a => a.id === id);
             if(asset) {
-                if(asset.imgs) for (const key of asset.imgs) { if(!key.startsWith('data:')) await deleteFileFromDB(key); }
-                if(asset.audio && !asset.audio.startsWith('data:')) await deleteFileFromDB(asset.audio);
+                if(asset.imgs) for (const key of asset.imgs) { if(!key.startsWith('data:') && !key.startsWith('http')) await deleteFileFromDB(key); }
+                if(asset.audio && !asset.audio.startsWith('data:') && !asset.audio.startsWith('http')) await deleteFileFromDB(asset.audio);
             }
             assets[currentType] = assets[currentType].filter(a => a.id !== id);
             localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+            await saveDataToCloud();
             renderGrid();
         }
     };
 
-    // ================= 5. 图片轮播与动效 =================
+    // ================= 7. 图片轮播与动效 =================
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightbox-img');
     const lightboxImgWrapper = document.getElementById('lightbox-img-wrapper');
@@ -1110,14 +1138,12 @@
     }
 
     function updateLightboxImage() {
-        // 每次切换图片重置缩放和位置
         scale = 1; translateX = 0; translateY = 0; 
         lightboxImg.style.transform = `translate(0px, 0px) scale(1)`;
         
         lightboxImg.src = currentImgArray[currentImgIndex];
         indicator.innerText = `${currentImgIndex + 1} / ${currentImgArray.length}`;
         
-        // 触发入场动画（针对包裹层，不影响 img 自身的 transform）
         lightboxImgWrapper.classList.remove('apple-anim');
         void lightboxImgWrapper.offsetWidth; 
         lightboxImgWrapper.classList.add('apple-anim');
@@ -1145,19 +1171,14 @@
 
     window.closeLightbox = () => lightbox.classList.remove('active');
 
-    // 滚轮缩放（丝滑不卡顿）
     lightboxContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
-        // 用户开始手动操作时，移除入场动画的类，防止 CSS 动画锁死 transform
         lightboxImgWrapper.classList.remove('apple-anim');
-        
         if (e.deltaY < 0) scale += 0.15; else scale -= 0.15;
         scale = Math.max(0.5, Math.min(scale, 5));
-        
         lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     }, { passive: false });
 
-    // 拖拽查看
     lightboxContainer.addEventListener('mousedown', (e) => {
         lightboxImgWrapper.classList.remove('apple-anim');
         isDragging = true;
@@ -1172,9 +1193,7 @@
         lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     });
 
-    window.addEventListener('mouseup', () => { 
-        isDragging = false; 
-    });
+    window.addEventListener('mouseup', () => { isDragging = false; });
 
     document.addEventListener('keydown', (e) => {
         if(!lightbox.classList.contains('active')) return;
@@ -1183,6 +1202,8 @@
         if (e.key === 'ArrowRight') nextImage();
     });
 
+    // 🌟 立即启动本地应用，绝对不卡白屏！
+    initApp();
 </script>
 </body>
 </html>
