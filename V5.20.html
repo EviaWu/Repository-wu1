@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>资产管理仪表盘</title>
+<title>Drama资产管理仪表盘</title>
 <!-- 🌟 静态引入 SDK，最稳的 unpkg 镜像和版本 -->
 <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
@@ -439,11 +439,19 @@
     }
     .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff453a; box-shadow: 0 0 8px #ff453a; }
     .status-dot.online { background: #34c759; box-shadow: 0 0 8px #34c759; }
+
+    /* ================= 🌟 新增：上传遮罩 ================= */
+    #upload-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; color: white; font-size: 16px; font-weight: bold; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
     <canvas id="bg-canvas"></canvas>
+
+    <!-- 🌟 新增：上传遮罩 -->
+    <div id="upload-mask"><div class="spinner"></div><span>正在上传至云端，请稍候...</span></div>
 
     <header>
         <div class="title-area" id="title-area">
@@ -561,6 +569,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0cndjamRkaWZtYXN5bGNpcXpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1NzA4MzAsImV4cCI6MjEwODE0NjgzMH0.hoRsgid6id9k0r_eWOs3PfKkwLUp4_57A7tJiTz7XKo';
     
     let supabase = null;
+    const uploadMask = document.getElementById('upload-mask');
 
     window.updateCloudStatus = function(isOnline, msg) {
         const dot = document.getElementById('status-dot');
@@ -894,7 +903,7 @@
     backBtn.onclick = () => {
         currentDrama = null; 
         titleArea.innerHTML = `
-            <h1 id="main-title" contenteditable="true" spellcheck="false">${localStorage.getItem('sys_title') || '影视资产中枢'}</h1>
+            <h1 id="main-title" contenteditable="true" spellcheck="false">${localStorage.getItem('sys_title') || '资产管理仪表盘'}</h1>
             <p>ASSET MANAGEMENT SYSTEM</p>
         `;
         document.getElementById('main-title').addEventListener('input', () => {});
@@ -1031,63 +1040,60 @@
         }
     }
 
+    // 🌟 核心修改：图片上传增加强制等待和报错提示
     window.handleImageUpload = async (e) => {
         const files = Array.from(e.target.files); if (files.length === 0) return;
-        document.getElementById('upload-preview').innerText = '正在存储原图，请稍候...';
+        uploadMask.style.display = 'flex';
         
         for (const file of files) {
             const key = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            await saveFileToDB(key, file);
+            await saveFileToDB(key, file); // 存本地
             tempImgsKeys.push(key);
         }
-        document.getElementById('upload-preview').innerText = `已选择 ${tempImgsKeys.length} 张图片`;
-
+        
         if (supabase) {
-            document.getElementById('upload-preview').innerText = '正在同步至云端...';
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 const localKey = tempImgsKeys[tempImgsKeys.length - files.length + i];
                 try {
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+                    // 强制等待上传完成
                     const { error } = await supabase.storage.from('media').upload(fileName, file);
-                    if (!error) {
-                        const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
-                        const idx = tempImgsKeys.indexOf(localKey);
-                        if (idx > -1) tempImgsKeys[idx] = publicUrl;
-                    } else {
-                        console.error("图片上传云端失败:", error);
-                    }
-                } catch (err) { console.error("图片云端请求报错:", err); }
+                    
+                    if (error) throw error; // 如果报错，直接抛出
+
+                    const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
+                    const idx = tempImgsKeys.indexOf(localKey);
+                    if (idx > -1) tempImgsKeys[idx] = publicUrl; // 替换为真实的云链接
+                } catch (err) {
+                    alert("图片上传云端失败，请检查 Storage 权限配置。原因：" + err.message);
+                    console.error("图片上传失败", err);
+                }
             }
-            document.getElementById('upload-preview').innerText = `已同步至云端`;
         }
+        uploadMask.style.display = 'none';
+        document.getElementById('upload-preview').innerText = `已选择 ${tempImgsKeys.length} 张图片`;
     };
 
     window.handleAudioUpload = async (e) => {
         const file = e.target.files[0]; if (!file) return;
-        document.getElementById('upload-preview').innerText = '正在存储音频...';
-        
+        uploadMask.style.display = 'flex';
         const key = 'audio_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        await saveFileToDB(key, file);
-        tempAudioKey = key;
-        document.getElementById('upload-preview').innerText = `已选择: ${file.name}`;
-
+        await saveFileToDB(key, file); tempAudioKey = key;
+        
         if (supabase) {
-            document.getElementById('upload-preview').innerText = '正在同步至云端...';
             try {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
                 const { error } = await supabase.storage.from('media').upload(fileName, file);
-                if (!error) {
-                    const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
-                    tempAudioKey = publicUrl;
-                } else {
-                    console.error("音频上传云端失败:", error);
-                }
-            } catch (err) { console.error("音频云端请求报错:", err); }
-            document.getElementById('upload-preview').innerText = `已同步至云端`;
+                if (error) throw error;
+                const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
+                tempAudioKey = publicUrl;
+            } catch (err) { alert("音频上传失败：" + err.message); }
         }
+        uploadMask.style.display = 'none';
+        document.getElementById('upload-preview').innerText = `已选择: ${file.name}`;
     };
 
     document.getElementById('cancel-btn').onclick = () => modal.classList.remove('active');
