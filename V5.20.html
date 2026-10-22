@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>资产管理仪表盘</title>
+<!-- 🌟 静态引入 SDK，最稳的 unpkg 镜像和版本 -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
     /* ================= 主题定义 ================= */
     [data-theme="neon"] {
@@ -422,6 +424,21 @@
     .time-bar { position: fixed; bottom: 32px; left: 64px; font-family: "SF Mono", monospace; font-size: 14px; color: var(--text-muted); letter-spacing: 1px; display: flex; align-items: center; gap: 12px; pointer-events: none; z-index: 100; }
     .time-bar .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
     @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+
+    /* 🌟 修改：云端状态移到了左下角，时间指示器的正上方 */
+    #cloud-status { 
+        position: fixed; 
+        bottom: 76px; /* 在时间栏(32px+20px高)之上留出间距 */
+        left: 64px;   /* 与时间栏左侧对齐 */
+        display: flex; align-items: center; gap: 8px; 
+        background: var(--panel-bg); border: 1px solid var(--panel-border); 
+        padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: bold; 
+        color: var(--text-muted); backdrop-filter: blur(10px); z-index: 100; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff453a; box-shadow: 0 0 8px #ff453a; }
+    .status-dot.online { background: #34c759; box-shadow: 0 0 8px #34c759; }
 </style>
 </head>
 <body>
@@ -430,7 +447,7 @@
 
     <header>
         <div class="title-area" id="title-area">
-            <h1 id="main-title" contenteditable="true" spellcheck="false">影视资产中枢</h1>
+            <h1 id="main-title" contenteditable="true" spellcheck="false">资产管理仪表盘</h1>
             <p>ASSET MANAGEMENT SYSTEM</p>
         </div>
         <div class="stats">
@@ -468,9 +485,16 @@
 
     <button class="fab" id="add-btn">+</button>
 
+    <!-- 🌟 时间指示器 -->
     <div class="time-bar">
         <div class="dot"></div>
         <span id="current-time">Loading time...</span>
+    </div>
+
+    <!-- 🌟 云端状态指示（现在在左下角时间上方） -->
+    <div id="cloud-status">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">未连接云端 (纯本地模式)</span>
     </div>
 
     <!-- 右键菜单 -->
@@ -531,48 +555,76 @@
     </div>
 
 <script>
-    // ================= 🌟 0. 全局防弹保护机制 =================
-    window.onerror = function(msg, url, line, col, error) {
-        console.warn("系统捕获异常，已自动拦截防止崩溃：", msg);
-        return true; // 阻止默认报错阻塞
-    };
-
     // ================= 🌟 1. Supabase 云端初始化 =================
-    // 如果没有填写 URL 和 Key，或者 CDN 加载失败，整个系统依然完美运行本地版！
+    // ⚠️ 注意：请填入你的真实 URL 和 Legacy anon key (以 eyJ 开头)
     const SUPABASE_URL = 'https://ytrwcjddifmasylciqzh.supabase.co/rest/v1/';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0cndjamRkaWZtYXN5bGNpcXpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1NzA4MzAsImV4cCI6MjEwODE0NjgzMH0.hoRsgid6id9k0r_eWOs3PfKkwLUp4_57A7tJiTz7XKo';
     
     let supabase = null;
-    try {
-        if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
-            // 动态加载 SDK，防止网络卡住主线程
-            const script = document.createElement('script');
-            script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-            script.onload = () => {
-                try {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    // 加载成功后，去拉取云端数据
-                    loadDataFromCloud().then(updated => { if(updated) renderTarot(); });
-                    // 开启实时监听
-                    supabase.channel('drama_data_changes').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'drama_data', filter: 'id=eq.1' }, payload => {
-                        if (payload.new && payload.new.content) {
-                            assets = { "人物": [], "场景": [], "道具": [], "音色": [], ...payload.new.content };
-                            localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
-                            renderTarot();
-                            if (currentDrama) renderGrid();
-                        }
-                    }).subscribe();
-                } catch(e) {}
-            };
-            document.head.appendChild(script);
+
+    window.updateCloudStatus = function(isOnline, msg) {
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        if (isOnline) {
+            dot.classList.add('online');
+            text.innerText = msg || '云端已连接 (实时同步中)';
+        } else {
+            dot.classList.remove('online');
+            text.innerText = msg || '未连接云端 (纯本地模式)';
         }
-    } catch (e) {
-        console.warn('云端连接失败，自动降级为本地模式');
+    };
+
+    async function initCloud() {
+        if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+            updateCloudStatus(false, '未配置密钥 (本地模式)');
+            return;
+        }
+
+        try {
+            if(!window.supabase) throw new Error("Supabase SDK 未加载");
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // 测试连接
+            const { data, error } = await supabase.from('drama_data').select('content').eq('id', 1).single();
+            
+            if (error) {
+                console.error("云端连接测试失败:", error);
+                updateCloudStatus(false, '数据库连不上');
+                alert("云端连接失败，请检查：1. 表名是否叫 drama_data 2. 是否配置了 RLS 策略。错误信息：" + error.message);
+                supabase = null; 
+                return;
+            }
+
+            updateCloudStatus(true, '云端已连接');
+            
+            // 覆盖本地并刷新
+            if (data && data.content && Object.keys(data.content).length > 0) {
+                assets = { "人物": [], "场景": [], "道具": [], "音色": [], ...data.content };
+                localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+                renderTarot();
+            }
+
+            // 开启实时监听
+            supabase.channel('sync').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'drama_data', filter: 'id=eq.1' }, payload => {
+                if (payload.new && payload.new.content) {
+                    assets = { "人物": [], "场景": [], "道具": [], "音色": [], ...payload.new.content };
+                    localStorage.setItem('sys_assets_v5', JSON.stringify(assets));
+                    renderTarot(); if(currentDrama) renderGrid();
+                }
+            }).subscribe();
+
+        } catch (e) {
+            console.error("云端配置抛出异常:", e);
+            updateCloudStatus(false, '配置错误');
+        }
     }
 
     async function saveDataToCloud() {
         if (!supabase) return;
-        try { await supabase.from('drama_data').update({ content: assets }).eq('id', 1); } catch (e) {}
+        try { 
+            const { error } = await supabase.from('drama_data').update({ content: assets }).eq('id', 1); 
+            if(error) console.error("保存数据到云端失败:", error);
+        } catch (e) { console.error("请求异常:", e); }
     }
 
     async function loadDataFromCloud() {
@@ -685,7 +737,7 @@
             if (parsed) assets = { ...assets, ...parsed };
         } else {
             assets = {
-                "人物": [{ id: '1', drama: '黑手党的绝嗣老婆', name: '林晚', status: '已定稿', desc: '黑长直，核心女主', imgs: [], audio: '' }],
+                "人物": [{ id: '1', drama: '《黑手党的绝嗣老婆》', name: '埃琳娜', status: '已定稿', desc: '金长卷，核心女主', imgs: [], audio: '' }],
                 "场景": [], "道具": [], "音色": []
             };
         }
@@ -718,6 +770,9 @@
         document.documentElement.setAttribute('data-theme', currentTheme);
         
         try { renderTarot(); } catch(e) { console.error("首次渲染错误", e); }
+        
+        // 启动云端
+        initCloud();
     }
 
     function updateStats() { for (let key in assets) { document.getElementById(`stat-${key}`).innerText = assets[key].length; } }
@@ -1000,8 +1055,10 @@
                         const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
                         const idx = tempImgsKeys.indexOf(localKey);
                         if (idx > -1) tempImgsKeys[idx] = publicUrl;
+                    } else {
+                        console.error("图片上传云端失败:", error);
                     }
-                } catch (err) {}
+                } catch (err) { console.error("图片云端请求报错:", err); }
             }
             document.getElementById('upload-preview').innerText = `已同步至云端`;
         }
@@ -1025,8 +1082,10 @@
                 if (!error) {
                     const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
                     tempAudioKey = publicUrl;
+                } else {
+                    console.error("音频上传云端失败:", error);
                 }
-            } catch (err) {}
+            } catch (err) { console.error("音频云端请求报错:", err); }
             document.getElementById('upload-preview').innerText = `已同步至云端`;
         }
     };
