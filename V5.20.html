@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)file:///D:/MyWork/3-UI%E8%AE%BE%E8%AE%A1/V5.2.html -->
-<html lang="zh-CN" data-theme="morandi"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="zh-CN" data-theme="neon">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>资产管理仪表盘</title>
 <style>
@@ -132,7 +132,7 @@
 
     .control-bar {
         width: 100%; display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 40px;
+        margin-bottom: 20px;
     }
 
     .tabs { display: flex; gap: 16px; }
@@ -166,23 +166,28 @@
     .view-section { display: none; opacity: 0; transition: opacity 0.5s ease; width: 100%; height: 100%; }
     .view-section.active { display: flex; flex-direction: column; align-items: center; opacity: 1; }
 
-    /* ----- 1. 塔罗牌布阵 ----- */
+    /* ----- 1. 塔罗牌堆叠与展开 ----- */
     .tarot-area {
-        position: relative; width: 100%; max-width: 1200px; height: 480px;
-        display: flex; justify-content: center; align-items: flex-start;
-        perspective: 1200px; margin: 0 auto; padding-top: 40px;
+        position: relative; width: 100%; max-width: 1400px; height: 520px;
+        display: flex; justify-content: center; align-items: center;
+        perspective: 1200px; margin: 0 auto;
     }
 
     .tarot-card-wrapper {
         position: absolute; width: 240px; height: 340px;
-        transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
         cursor: pointer; transform-style: preserve-3d;
+        /* 默认堆叠状态：紧凑堆在一起，自带微小倾斜 */
+        transform: translateX(0px) translateY(0px) rotateZ(var(--stack-rz)) scale(1);
+        z-index: calc(100 - var(--i)); 
     }
+    
+    .tarot-card-wrapper:hover { z-index: 200 !important; }
 
     .tarot-card {
         width: 100%; height: 100%;
         background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         overflow: hidden; position: relative;
         transition: box-shadow 0.4s ease, transform 0.4s ease;
     }
@@ -197,17 +202,16 @@
     
     .tarot-card-wrapper:hover .tarot-card {
         box-shadow: var(--card-hover-shadow);
-        transform: translateY(-10px);
     }
     .tarot-card-wrapper:hover .tarot-card-cover { opacity: 1; transform: scale(1.05); }
     
-    /* 文本容器：彻底取消宽度限制，强制不换行 */
+    /* 文本容器：彻底取消宽度限制，强制不换行，绝对居中 */
     .tarot-content { 
         position: absolute;
-        top: calc(100% + 20px);
+        top: calc(100% + 15px);
         left: 50%;
         transform: translateX(-50%) translateY(10px);
-        width: max-content; /* 自适应最宽内容 */
+        width: max-content;
         text-align: center;
         opacity: 0; 
         pointer-events: none;
@@ -220,7 +224,7 @@
         transform: translateX(-50%) translateY(0);
     }
     
-    /* 剧名文本：单行显示 */
+    /* 剧名文本 */
     .tarot-title { 
         font-family: "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
         font-size: 24px; 
@@ -235,8 +239,6 @@
         
         text-shadow: var(--tarot-text-shadow);
         margin-bottom: 8px;
-        
-        /* 核心修改：强制单行 */
         white-space: nowrap; 
     }
     .tarot-count { 
@@ -247,17 +249,14 @@
         text-transform: uppercase;
     }
 
-    /* 展开与堆叠动画 */
+    /* 🌟 核心：悬停时呈抛物线完美展开 */
     .tarot-area:hover .tarot-card-wrapper { 
-        transform: translateX(var(--tx)) translateZ(var(--tz)) rotateY(var(--ry)) rotateZ(var(--rz)) scale(1); 
+        transform: translateX(var(--tx)) translateY(var(--ty)) rotateZ(var(--rz)) scale(1); 
     }
+    /* 鼠标移到具体某一张时，它单独浮高并摆正 */
     .tarot-area:hover .tarot-card-wrapper:hover { 
-        transform: translateX(var(--tx)) translateZ(calc(var(--tz) + 60px)) rotateY(0) rotateZ(0) scale(1.05); 
-        z-index: 100 !important; 
-    }
-    .tarot-card-wrapper { 
-        transform: translateX(calc(var(--i) * 2px)) translateY(calc(var(--i) * -2px)) rotateZ(calc(var(--i) * 1deg)); 
-        z-index: calc(10 - var(--i)); 
+        transform: translateX(var(--tx)) translateY(calc(var(--ty) - 30px)) rotateZ(0deg) scale(1.05); 
+        z-index: 999 !important; 
     }
 
     /* ----- 2. 散开后的资产网格 ----- */
@@ -388,15 +387,23 @@
     /* 全屏预览 */
     .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s; overflow: hidden; }
     .lightbox.active { opacity: 1; pointer-events: auto; }
-    .lightbox-img-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; cursor: grab; position: relative;}
+    
+    .lightbox-img-container { 
+        width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; 
+        cursor: grab; position: relative; overflow: hidden;
+    }
     .lightbox-img-container:active { cursor: grabbing; }
+    
+    #lightbox-img-wrapper {
+        display: flex; justify-content: center; align-items: center;
+        pointer-events: none; 
+    }
     
     .lightbox img { 
         max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); 
-        transition: transform 0.1s ease-out; user-select: none; -webkit-user-drag: none; 
+        user-select: none; -webkit-user-drag: none; 
     }
     
-    /* 苹果级切换动画 */
     .apple-anim { animation: appleFadeSlide 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
     @keyframes appleFadeSlide {
         0% { opacity: 0; transform: translateX(30px) scale(0.95); }
@@ -420,6 +427,7 @@
         position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
         color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; letter-spacing: 2px;
         background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 100px; backdrop-filter: blur(10px);
+        z-index: 2001;
     }
 
     /* 底部时间栏 */
@@ -430,22 +438,22 @@
 </head>
 <body>
 
-    <canvas id="bg-canvas" width="1920" height="953"></canvas>
+    <canvas id="bg-canvas"></canvas>
 
     <header>
         <div class="title-area" id="title-area">
-            <h1 id="main-title" contenteditable="true" spellcheck="false">资产管理仪表盘</h1>
+            <h1 id="main-title" contenteditable="true" spellcheck="false">影视资产中枢</h1>
             <p>ASSET MANAGEMENT SYSTEM</p>
         </div>
         <div class="stats">
-            <div class="stat-pill"><div class="label">人物</div><div class="value" id="stat-人物">3</div></div>
-            <div class="stat-pill"><div class="label">场景</div><div class="value" id="stat-场景">1</div></div>
+            <div class="stat-pill"><div class="label">人物</div><div class="value" id="stat-人物">0</div></div>
+            <div class="stat-pill"><div class="label">场景</div><div class="value" id="stat-场景">0</div></div>
             <div class="stat-pill"><div class="label">道具</div><div class="value" id="stat-道具">0</div></div>
-            <div class="stat-pill"><div class="label">音色</div><div class="value" id="stat-音色">1</div></div>
+            <div class="stat-pill"><div class="label">音色</div><div class="value" id="stat-音色">0</div></div>
             
             <div class="lamp-container" id="lamp-switch" title="拉拽切换主题">
-                <div class="lamp-wire" style=""></div>
-                <div class="lamp-bulb" style=""></div>
+                <div class="lamp-wire"></div>
+                <div class="lamp-bulb"></div>
             </div>
         </div>
     </header>
@@ -462,23 +470,7 @@
         </div>
 
         <section class="view-section active" id="view-tarot">
-            <div class="tarot-area" id="tarot-area"><div class="tarot-card-wrapper" style="--tx: -50px; --ry: -7.5deg; --rz: -1.5deg; --tz: -15px; --i: 0;">
-                <div class="tarot-card">
-                    
-                </div>
-                <div class="tarot-content">
-                    <div class="tarot-title">《黑手党的绝嗣老婆》</div>
-                    <div class="tarot-count">📁 2 项资产</div>
-                </div>
-            </div><div class="tarot-card-wrapper" style="--tx: 50px; --ry: 7.5deg; --rz: 1.5deg; --tz: -15px; --i: 1;">
-                <div class="tarot-card">
-                    
-                </div>
-                <div class="tarot-content">
-                    <div class="tarot-title">《The Mafia Don Hired Me as His》</div>
-                    <div class="tarot-count">📁 1 项资产</div>
-                </div>
-            </div></div>
+            <div class="tarot-area" id="tarot-area"></div>
         </section>
 
         <section class="view-section" id="view-grid">
@@ -490,11 +482,11 @@
 
     <div class="time-bar">
         <div class="dot"></div>
-        <span id="current-time">2026/10/21 17:38:01</span>
+        <span id="current-time">Loading time...</span>
     </div>
 
     <!-- 右键菜单 -->
-    <div class="context-menu" id="context-menu" style="display: none;">
+    <div class="context-menu" id="context-menu">
         <div class="ctx-item" id="ctx-edit">✏️ 修改剧名</div>
         <div class="ctx-item" id="ctx-date">📅 标记创建日期</div>
         <div class="ctx-item danger" id="ctx-delete">🗑 删除整个剧集</div>
@@ -543,7 +535,9 @@
         <div class="lightbox-nav lightbox-prev" onclick="prevImage(event)">‹</div>
         <div class="lightbox-nav lightbox-next" onclick="nextImage(event)">›</div>
         <div class="lightbox-img-container" id="lightbox-container">
-            <img id="lightbox-img" src="file:///D:/MyWork/3-UI%E8%AE%BE%E8%AE%A1/V5.2.html" alt="Preview" style="transition: transform 0.1s ease-out;">
+            <div id="lightbox-img-wrapper" class="apple-anim">
+                <img id="lightbox-img" src="" alt="Preview">
+            </div>
         </div>
         <div class="lightbox-indicator" id="lightbox-indicator">1 / 1</div>
     </div>
@@ -737,6 +731,11 @@
         if (dramas.length === 0) { tarotArea.innerHTML = `<div style="color:var(--text-muted); font-size:16px;">暂无剧集，点击右下角 + 创建资产</div>`; return; }
         
         let total = dramas.length;
+        // 动态计算间距，最高不超过 150px，防止太多溢出屏幕
+        let spacing = total > 1 ? Math.min(1100 / (total - 1), 150) : 0;
+        // 动态计算角度，最高不超过 30 度
+        let angleStep = total > 1 ? Math.min(30 / (total - 1), 6) : 0;
+
         for (let index = 0; index < dramas.length; index++) {
             const drama = dramas[index];
             let dramaAssets = assets[currentType].filter(a => (a.drama || '未命名剧集') === drama);
@@ -748,11 +747,19 @@
             let wrapper = document.createElement('div');
             wrapper.className = 'tarot-card-wrapper';
             
-            let center = (total - 1) / 2; let offset = index - center;
-            wrapper.style.setProperty('--tx', `${offset * 100}px`); 
-            wrapper.style.setProperty('--ry', `${offset * 15}deg`);
-            wrapper.style.setProperty('--rz', `${offset * 3}deg`); 
-            wrapper.style.setProperty('--tz', `${-Math.abs(offset) * 30}px`);
+            let center = (total - 1) / 2; 
+            let offset = index - center;
+            
+            // 计算展开位置的 TX (X轴平移), TY (Y轴下沉), RZ (旋转角度)
+            let tx = offset * spacing;
+            let rz = offset * angleStep;
+            let ty = Math.pow(Math.abs(offset), 1.5) * 10; // 抛物线弧度，两边下沉
+
+            wrapper.style.setProperty('--tx', `${tx}px`);
+            wrapper.style.setProperty('--ty', `${ty}px`);
+            wrapper.style.setProperty('--rz', `${rz}deg`);
+            // 堆叠状态下的微小旋转
+            wrapper.style.setProperty('--stack-rz', `${(index - center) * 2}deg`);
             wrapper.style.setProperty('--i', index);
             
             wrapper.onclick = () => openDrama(drama);
@@ -1075,6 +1082,7 @@
     // ================= 5. 图片轮播与动效 =================
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxImgWrapper = document.getElementById('lightbox-img-wrapper');
     const lightboxContainer = document.getElementById('lightbox-container');
     const indicator = document.getElementById('lightbox-indicator');
     const prevBtn = document.querySelector('.lightbox-prev');
@@ -1102,26 +1110,23 @@
     }
 
     function updateLightboxImage() {
+        // 每次切换图片重置缩放和位置
         scale = 1; translateX = 0; translateY = 0; 
-        lightboxImg.style.transition = 'none';
-        lightboxImg.style.transform = 'translate(0px, 0px) scale(1)';
+        lightboxImg.style.transform = `translate(0px, 0px) scale(1)`;
         
         lightboxImg.src = currentImgArray[currentImgIndex];
         indicator.innerText = `${currentImgIndex + 1} / ${currentImgArray.length}`;
         
-        lightboxImg.classList.remove('apple-anim');
-        void lightboxImg.offsetWidth; 
-        lightboxImg.classList.add('apple-anim');
+        // 触发入场动画（针对包裹层，不影响 img 自身的 transform）
+        lightboxImgWrapper.classList.remove('apple-anim');
+        void lightboxImgWrapper.offsetWidth; 
+        lightboxImgWrapper.classList.add('apple-anim');
         
         if (currentImgArray.length <= 1) {
             prevBtn.style.display = 'none'; nextBtn.style.display = 'none';
         } else {
             prevBtn.style.display = 'flex'; nextBtn.style.display = 'flex';
         }
-        
-        setTimeout(() => {
-            lightboxImg.style.transition = 'transform 0.1s ease-out';
-        }, 450); 
     }
 
     window.prevImage = (e) => {
@@ -1140,31 +1145,36 @@
 
     window.closeLightbox = () => lightbox.classList.remove('active');
 
+    // 滚轮缩放（丝滑不卡顿）
     lightboxContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
-        if (e.deltaY < 0) scale += 0.1; else scale -= 0.1;
+        // 用户开始手动操作时，移除入场动画的类，防止 CSS 动画锁死 transform
+        lightboxImgWrapper.classList.remove('apple-anim');
+        
+        if (e.deltaY < 0) scale += 0.15; else scale -= 0.15;
         scale = Math.max(0.5, Math.min(scale, 5));
-        updateImgTransform();
+        
+        lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     }, { passive: false });
 
+    // 拖拽查看
     lightboxContainer.addEventListener('mousedown', (e) => {
+        lightboxImgWrapper.classList.remove('apple-anim');
         isDragging = true;
-        startX = e.clientX - translateX; startY = e.clientY - translateY;
-        lightboxImg.style.transition = 'none'; 
+        startX = e.clientX - translateX; 
+        startY = e.clientY - translateY;
     });
 
     window.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        translateX = e.clientX - startX; translateY = e.clientY - startY;
-        updateImgTransform();
+        translateX = e.clientX - startX; 
+        translateY = e.clientY - startY;
+        lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     });
 
     window.addEventListener('mouseup', () => { 
         isDragging = false; 
-        lightboxImg.style.transition = 'transform 0.1s ease-out';
     });
-
-    function updateImgTransform() { lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`; }
 
     document.addEventListener('keydown', (e) => {
         if(!lightbox.classList.contains('active')) return;
@@ -1174,5 +1184,5 @@
     });
 
 </script>
-
-</body></html>
+</body>
+</html>
